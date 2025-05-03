@@ -1,4 +1,3 @@
-
 import { createContext, useContext, useState, ReactNode } from 'react';
 import { toast } from 'sonner';
 
@@ -54,6 +53,8 @@ const MOCK_USER: User = {
 export const AuthProvider = ({ children }: { children: ReactNode }) => {
   const [user, setUser] = useState<User | null>(null);
   const [isLoading, setIsLoading] = useState(false);
+
+  // All hooks are defined at the beginning of the component
 
   const login = async (email: string, password: string) => {
     setIsLoading(true);
@@ -177,6 +178,8 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
     
     return true;
   };
+
+  // There are no early returns in the component
 
   return (
     <AuthContext.Provider value={{ 

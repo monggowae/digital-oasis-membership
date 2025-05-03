@@ -13,6 +13,7 @@ const Admin = () => {
   const { user, isAdmin } = useAuth();
   const [activeTab, setActiveTab] = useState("products");
 
+  // Move hooks before any conditional returns
   // Redirect if not admin
   if (!user || !isAdmin) {
     return <Navigate to="/" />;

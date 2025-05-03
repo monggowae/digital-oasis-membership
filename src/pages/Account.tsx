@@ -23,27 +23,13 @@ const Account = () => {
   const [isEditingProfile, setIsEditingProfile] = useState(false);
   const [isChangingPassword, setIsChangingPassword] = useState(false);
 
-  if (!user) {
-    return <Navigate to="/login" />;
-  }
-
-  // Get user's active credits
-  const activeCredits = userCredits.filter(credit => 
-    credit.userId === user.id && credit.status === 'active'
-  );
-
-  const totalCredits = getUserTotalCredits();
-
-  // Get credit usage history
-  const creditUsageHistory = getCreditUsageHistory();
-
-  // Profile form schema
+  // Move the conditional return after all hook declarations
+  // Create form schemas
   const profileSchema = z.object({
     name: z.string().min(2, "Name must be at least 2 characters"),
     phoneNumber: z.string().min(10, "Phone number must be valid").optional(),
   });
 
-  // Password form schema
   const passwordSchema = z.object({
     currentPassword: z.string().min(4, "Current password is required"),
     newPassword: z.string().min(6, "New password must be at least 6 characters"),
@@ -57,8 +43,8 @@ const Account = () => {
   const profileForm = useForm<z.infer<typeof profileSchema>>({
     resolver: zodResolver(profileSchema),
     defaultValues: {
-      name: user.name,
-      phoneNumber: user.phoneNumber || "",
+      name: user?.name || "",
+      phoneNumber: user?.phoneNumber || "",
     },
   });
 
@@ -91,6 +77,21 @@ const Account = () => {
       console.error("Failed to update password:", error);
     }
   };
+
+  // Now check if user exists and redirect if not
+  if (!user) {
+    return <Navigate to="/login" />;
+  }
+
+  // Get user's active credits
+  const activeCredits = userCredits.filter(credit => 
+    credit.userId === user.id && credit.status === 'active'
+  );
+
+  const totalCredits = getUserTotalCredits();
+
+  // Get credit usage history
+  const creditUsageHistory = getCreditUsageHistory();
 
   return (
     <MainLayout>
