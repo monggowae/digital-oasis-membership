@@ -1,5 +1,5 @@
 
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { MainLayout } from "@/components/layout/MainLayout";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { useAuth } from "@/contexts/AuthContext";
@@ -10,12 +10,23 @@ import AdminPurchases from "@/components/admin/AdminPurchases";
 import AdminNotifications from "@/components/admin/AdminNotifications";
 
 const Admin = () => {
-  const { user, isAdmin } = useAuth();
+  // Use hooks at the top level before any conditional returns
+  const { user, profile, isLoading } = useAuth();
   const [activeTab, setActiveTab] = useState("products");
 
-  // Move hooks before any conditional returns
-  // Redirect if not admin
-  if (!user || !isAdmin) {
+  // Show a loading state while we check authentication
+  if (isLoading) {
+    return (
+      <MainLayout>
+        <div className="container mx-auto px-4 py-8">
+          <p>Loading...</p>
+        </div>
+      </MainLayout>
+    );
+  }
+
+  // Redirect if not authenticated or not an admin
+  if (!user || !profile || profile.role !== 'admin') {
     return <Navigate to="/" />;
   }
 
