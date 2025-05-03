@@ -10,7 +10,7 @@ import { useAuth } from "@/contexts/AuthContext";
 import { toast } from "sonner";
 
 const Products = () => {
-  const { digitalProducts, purchaseProduct } = useStore();
+  const { digitalProducts, purchaseProduct, getUserTotalCredits } = useStore();
   const { user } = useAuth();
   const [searchTerm, setSearchTerm] = useState("");
   const [selectedCategory, setSelectedCategory] = useState<string | null>(null);
@@ -37,6 +37,20 @@ const Products = () => {
       toast.error("Please log in to make purchases");
       return;
     }
+    
+    const product = digitalProducts.find(p => p.id === productId);
+    if (!product) {
+      toast.error("Product not found");
+      return;
+    }
+    
+    const userCredits = getUserTotalCredits();
+    
+    if (userCredits < product.price) {
+      toast.error(`Not enough credits. You need ${product.price} credits to purchase this product.`);
+      return;
+    }
+    
     purchaseProduct(productId);
   };
 
@@ -111,7 +125,7 @@ const Products = () => {
                     <span className="font-bold">{product.price} Credits</span>
                     <div className="flex gap-2">
                       <Button 
-                        variant="outline" 
+                        variant="default" 
                         size="sm"
                         onClick={() => handlePurchase(product.id)}
                       >

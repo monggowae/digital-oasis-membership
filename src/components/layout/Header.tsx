@@ -14,10 +14,15 @@ import {
 import { Bell, User, Package } from "lucide-react";
 import { useAuth } from '@/contexts/AuthContext';
 import { NotificationDropdown } from '../notifications/NotificationDropdown';
+import { useStore } from '@/contexts/StoreContext';
 
 export const Header = () => {
   const { user, logout, isAdmin } = useAuth();
+  const { getUserTotalCredits } = useStore();
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
+  
+  // Get current total credits
+  const totalCredits = user ? getUserTotalCredits() : 0;
 
   return (
     <header className="sticky top-0 z-40 w-full border-b bg-background/95 backdrop-blur">
@@ -52,7 +57,7 @@ export const Header = () => {
             <>
               <div className="mr-4 hidden md:block">
                 <span className="px-2 py-1 bg-brand-100 text-brand-800 rounded-md text-sm font-medium">
-                  {user.credits} Credits
+                  {totalCredits} Credits
                 </span>
               </div>
               

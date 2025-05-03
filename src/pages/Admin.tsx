@@ -7,6 +7,7 @@ import { Navigate } from "react-router-dom";
 import AdminProducts from "@/components/admin/AdminProducts";
 import AdminCredits from "@/components/admin/AdminCredits";
 import AdminPurchases from "@/components/admin/AdminPurchases";
+import AdminNotifications from "@/components/admin/AdminNotifications";
 
 const Admin = () => {
   const { user, isAdmin } = useAuth();
@@ -24,10 +25,11 @@ const Admin = () => {
         <p className="text-gray-600 mb-8">Manage products, credit packages and purchases</p>
 
         <Tabs defaultValue="products" value={activeTab} onValueChange={setActiveTab} className="space-y-6">
-          <TabsList className="grid grid-cols-3 w-full max-w-md">
+          <TabsList className="grid grid-cols-4 w-full max-w-md">
             <TabsTrigger value="products">Products</TabsTrigger>
             <TabsTrigger value="credits">Credits</TabsTrigger>
             <TabsTrigger value="purchases">Purchases</TabsTrigger>
+            <TabsTrigger value="notifications">Notifications</TabsTrigger>
           </TabsList>
 
           <TabsContent value="products">
@@ -40,6 +42,10 @@ const Admin = () => {
 
           <TabsContent value="purchases">
             <AdminPurchases />
+          </TabsContent>
+
+          <TabsContent value="notifications">
+            <AdminNotifications />
           </TabsContent>
         </Tabs>
       </div>

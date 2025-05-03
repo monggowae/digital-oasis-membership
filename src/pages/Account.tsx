@@ -5,13 +5,13 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/com
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { useAuth } from "@/contexts/AuthContext";
 import { useStore } from "@/contexts/StoreContext";
-import { CreditCard, Clock, Package, User } from "lucide-react";
-import { format } from "date-fns";
+import { CreditCard, Clock, Package, User, History } from "lucide-react";
+import { format, formatDistance } from "date-fns";
 import { Navigate } from "react-router-dom";
 
 const Account = () => {
   const { user } = useAuth();
-  const { userCredits, getUserTotalCredits } = useStore();
+  const { userCredits, getUserTotalCredits, getCreditUsageHistory } = useStore();
 
   if (!user) {
     return <Navigate to="/login" />;
@@ -24,6 +24,9 @@ const Account = () => {
 
   const totalCredits = getUserTotalCredits();
 
+  // Get credit usage history
+  const creditUsageHistory = getCreditUsageHistory();
+
   return (
     <MainLayout>
       <div className="container mx-auto px-4 py-8">
@@ -33,6 +36,7 @@ const Account = () => {
           <TabsList>
             <TabsTrigger value="profile">Profile</TabsTrigger>
             <TabsTrigger value="credits">Credit History</TabsTrigger>
+            <TabsTrigger value="usage">Credit Usage</TabsTrigger>
           </TabsList>
 
           <TabsContent value="profile" className="mt-6">
@@ -127,6 +131,9 @@ const Account = () => {
                               <Clock className="h-3 w-3 mr-1" />
                               <span>Expires on {format(credit.expiryDate, "MMM d, yyyy")}</span>
                             </div>
+                            <div className="text-xs text-amber-600 mt-1">
+                              {formatDistance(credit.expiryDate, new Date(), { addSuffix: true })}
+                            </div>
                           </div>
                           <div className="text-right">
                             <span className="text-xs bg-green-100 text-green-800 py-1 px-2 rounded-full">Active</span>
@@ -142,6 +149,54 @@ const Account = () => {
                     <a href="/credits">Purchase More Credits</a>
                   </Button>
                 </div>
+              </CardContent>
+            </Card>
+          </TabsContent>
+
+          <TabsContent value="usage" className="mt-6">
+            <Card>
+              <CardHeader>
+                <div className="flex items-center gap-4">
+                  <div className="bg-brand-100 p-3 rounded-full">
+                    <History className="h-6 w-6 text-brand-600" />
+                  </div>
+                  <div>
+                    <CardTitle>Credit Usage</CardTitle>
+                    <CardDescription>
+                      Recent credit transactions and activities
+                    </CardDescription>
+                  </div>
+                </div>
+              </CardHeader>
+              <CardContent>
+                {creditUsageHistory.length === 0 ? (
+                  <div className="bg-gray-50 p-4 rounded text-center">
+                    <p className="text-gray-600">No credit usage history</p>
+                  </div>
+                ) : (
+                  <div className="space-y-4">
+                    {creditUsageHistory.map((record, index) => (
+                      <div key={index} className="bg-gray-50 border rounded-md p-4">
+                        <div className="flex justify-between items-start">
+                          <div>
+                            <p className="font-medium">{record.action}</p>
+                            {record.productName && (
+                              <p className="text-sm text-gray-600">{record.productName}</p>
+                            )}
+                          </div>
+                          <div className="text-right">
+                            <span className={`text-lg font-semibold ${record.amount > 0 ? 'text-green-600' : 'text-red-600'}`}>
+                              {record.amount > 0 ? '+' : ''}{record.amount} Credits
+                            </span>
+                            <div className="text-xs text-gray-500 mt-1">
+                              {format(record.date, "MMM d, yyyy")}
+                            </div>
+                          </div>
+                        </div>
+                      </div>
+                    ))}
+                  </div>
+                )}
               </CardContent>
             </Card>
           </TabsContent>

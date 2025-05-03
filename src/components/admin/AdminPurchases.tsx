@@ -9,25 +9,24 @@ import { Purchase } from "@/models/types";
 import { CheckCircle, XCircle } from "lucide-react";
 
 const AdminPurchases = () => {
-  const { purchases, digitalProducts, creditPackages, approvePurchase, rejectPurchase } = useStore();
+  const { purchases, creditPackages, approvePurchase, rejectPurchase } = useStore();
   const [filter, setFilter] = useState<'all' | 'pending' | 'approved' | 'rejected'>('all');
 
-  const getItemName = (purchase: Purchase) => {
-    if (purchase.type === 'product') {
-      return digitalProducts.find(p => p.id === purchase.itemId)?.name || 'Unknown Product';
-    } else {
-      return creditPackages.find(p => p.id === purchase.itemId)?.name || 'Unknown Package';
-    }
+  // Filter to only show credit purchases (no digital product purchases)
+  const creditPurchases = purchases.filter(purchase => purchase.type === 'credit');
+
+  const getPackageName = (purchase: Purchase) => {
+    return creditPackages.find(p => p.id === purchase.itemId)?.name || 'Unknown Package';
   };
 
   const filteredPurchases = filter === 'all' 
-    ? purchases 
-    : purchases.filter(p => p.status === filter);
+    ? creditPurchases 
+    : creditPurchases.filter(p => p.status === filter);
 
   return (
     <div>
       <div className="flex justify-between items-center mb-6">
-        <h2 className="text-2xl font-bold">Purchase Requests</h2>
+        <h2 className="text-2xl font-bold">Credit Purchase Requests</h2>
         <div className="flex space-x-2">
           <Button 
             variant={filter === 'all' ? "default" : "outline"} 
@@ -63,7 +62,7 @@ const AdminPurchases = () => {
       {filteredPurchases.length === 0 ? (
         <Card>
           <CardContent className="pt-6 text-center">
-            <p className="text-muted-foreground">No purchases found</p>
+            <p className="text-muted-foreground">No credit purchases found</p>
           </CardContent>
         </Card>
       ) : (
@@ -80,10 +79,10 @@ const AdminPurchases = () => {
                 <div className="flex justify-between items-start">
                   <div>
                     <CardTitle className="text-lg">
-                      {purchase.type === 'product' ? 'Product Purchase' : 'Credit Purchase'}
+                      Credit Package Purchase
                     </CardTitle>
                     <div className="text-sm text-muted-foreground">
-                      {getItemName(purchase)}
+                      {getPackageName(purchase)}
                     </div>
                   </div>
                   <Badge
@@ -108,8 +107,7 @@ const AdminPurchases = () => {
                     <span className="text-muted-foreground">User ID:</span> {purchase.userId}
                   </div>
                   <div>
-                    <span className="text-muted-foreground">Amount:</span>{' '}
-                    {purchase.amount} {purchase.type === 'credit' ? 'USD' : 'Credits'}
+                    <span className="text-muted-foreground">Amount:</span> ${purchase.amount}
                   </div>
                   <div>
                     <span className="text-muted-foreground">Date:</span>{' '}

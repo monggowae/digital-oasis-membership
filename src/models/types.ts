@@ -51,6 +51,25 @@ export interface Purchase {
   createdAt: Date;
 }
 
+export interface CreditUsageRecord {
+  id: string;
+  userId: string;
+  action: string;
+  amount: number;
+  date: Date;
+  productId?: string;
+  productName?: string;
+}
+
+export interface NotificationTemplate {
+  id: string;
+  name: string;
+  title: string;
+  message: string;
+  type: 'purchase' | 'system' | 'expiry';
+  variables: string[];
+}
+
 export interface StoreState {
   digitalProducts: DigitalProduct[];
   creditPackages: CreditPackage[];

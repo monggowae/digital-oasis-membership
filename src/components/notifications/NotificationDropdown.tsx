@@ -16,7 +16,7 @@ import { useNotifications } from '@/contexts/NotificationContext';
 import { formatDistanceToNow } from 'date-fns';
 
 export const NotificationDropdown = () => {
-  const { notifications, unreadCount, markAsRead, markAllAsRead } = useNotifications();
+  const { notifications, unreadCount, markAsRead, markAllAsRead, clearAllNotifications } = useNotifications();
   const [open, setOpen] = useState(false);
 
   const handleNotificationClick = (id: string) => {
@@ -48,7 +48,7 @@ export const NotificationDropdown = () => {
               </Button>
             )}
             {notifications.length > 0 && (
-              <Button variant="ghost" size="sm" onClick={markAllAsRead} className="text-xs h-7 text-red-500 hover:text-red-600">
+              <Button variant="ghost" size="sm" onClick={clearAllNotifications} className="text-xs h-7 text-red-500 hover:text-red-600">
                 <Trash className="h-3 w-3 mr-1" />
                 Clear all
               </Button>
