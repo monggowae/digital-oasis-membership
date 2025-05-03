@@ -138,7 +138,7 @@ interface StoreContextType extends StoreState {
 const StoreContext = createContext<StoreContextType | null>(null);
 
 export const StoreProvider = ({ children }: { children: ReactNode }) => {
-  const { user } = useAuth();
+  const { user, profile } = useAuth();
   const { addNotification } = useNotifications();
   
   const [state, setState] = useState<StoreState>({
