@@ -135,14 +135,18 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
     setIsLoading(true);
     try {
       console.log("Registering user with metadata:", { name, phoneNumber });
+      
+      // First, try to sign up the user
       const { error, data } = await supabase.auth.signUp({
         email,
         password,
         options: {
           data: {
             name,
-            phone_number: phoneNumber
-          }
+            phone_number: phoneNumber || null,
+            role: 'user'
+          },
+          emailRedirectTo: window.location.origin
         }
       });
       
@@ -151,7 +155,13 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
       // Log the response for debugging
       console.log("Supabase registration response:", data);
       
+      // Check if user was created successfully
+      if (!data.user || !data.user.id) {
+        throw new Error('Failed to create user account');
+      }
+      
       toast.success('Registration successful');
+      return;
     } catch (error: any) {
       console.error("Supabase registration error:", error);
       toast.error(error.message || 'Failed to register');

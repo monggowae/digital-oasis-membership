@@ -57,6 +57,7 @@ const Register = () => {
   const onSubmit = async (values: RegisterFormValues) => {
     setRegisterError(null);
     try {
+      console.log("Submitting registration form:", { ...values, password: "********" });
       await registerUser(values.name, values.email, values.password, values.phoneNumber);
       toast.success('Registration successful! Redirecting to homepage...');
       navigate('/');
