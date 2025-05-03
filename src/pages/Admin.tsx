@@ -22,7 +22,7 @@ const Admin = () => {
     <MainLayout>
       <div className="container mx-auto px-4 py-8">
         <h1 className="text-3xl font-bold mb-2">Admin Dashboard</h1>
-        <p className="text-gray-600 mb-8">Manage products, credit packages and purchases</p>
+        <p className="text-gray-600 mb-8">Manage products, credit packages, purchases and notifications</p>
 
         <Tabs defaultValue="products" value={activeTab} onValueChange={setActiveTab} className="space-y-6">
           <TabsList className="grid grid-cols-4 w-full max-w-md">

@@ -1,5 +1,5 @@
 
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -7,56 +7,29 @@ import { Textarea } from "@/components/ui/textarea";
 import { Label } from "@/components/ui/label";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { toast } from "sonner";
-
-type NotificationTemplate = {
-  id: string;
-  name: string;
-  title: string;
-  message: string;
-  type: 'purchase' | 'system' | 'expiry';
-};
-
-const DEFAULT_TEMPLATES: NotificationTemplate[] = [
-  {
-    id: 'template-1',
-    name: 'Product Purchase',
-    title: 'Product Purchase Confirmation',
-    message: 'Thank you for purchasing {product_name}. Your access will expire on {expiry_date}.',
-    type: 'purchase'
-  },
-  {
-    id: 'template-2',
-    name: 'Credit Purchase',
-    title: 'Credits Added',
-    message: '{credit_amount} credits have been added to your account.',
-    type: 'system'
-  },
-  {
-    id: 'template-3',
-    name: 'Product Expiry',
-    title: 'Product Access Expiring',
-    message: 'Your access to {product_name} will expire soon.',
-    type: 'expiry'
-  },
-  {
-    id: 'template-4',
-    name: 'Credit Expiry',
-    title: 'Credits Expiring',
-    message: '{credit_amount} credits will expire soon.',
-    type: 'expiry'
-  }
-];
+import { useNotifications } from "@/contexts/NotificationContext";
+import { NotificationTemplate } from "@/models/types";
 
 const AdminNotifications = () => {
-  const [templates, setTemplates] = useState<NotificationTemplate[]>(DEFAULT_TEMPLATES);
+  const { notificationTemplates, updateNotificationTemplate } = useNotifications();
+  const [templates, setTemplates] = useState<NotificationTemplate[]>([]);
   const [selectedTemplate, setSelectedTemplate] = useState<NotificationTemplate | null>(null);
   const [editMode, setEditMode] = useState(false);
   const [formData, setFormData] = useState({
     name: '',
     title: '',
     message: '',
-    type: 'system' as 'purchase' | 'system' | 'expiry'
+    type: 'system' as 'purchase' | 'system' | 'expiry',
+    variables: [] as string[]
   });
+  const [whatsappApiKey, setWhatsappApiKey] = useState('');
+
+  // Initialize templates from context
+  useEffect(() => {
+    if (notificationTemplates.length > 0) {
+      setTemplates(notificationTemplates);
+    }
+  }, [notificationTemplates]);
 
   const handleSelectTemplate = (template: NotificationTemplate) => {
     setSelectedTemplate(template);
@@ -64,7 +37,8 @@ const AdminNotifications = () => {
       name: template.name,
       title: template.title,
       message: template.message,
-      type: template.type
+      type: template.type,
+      variables: template.variables
     });
     setEditMode(false);
   };
@@ -81,14 +55,23 @@ const AdminNotifications = () => {
   const handleSave = () => {
     if (!selectedTemplate) return;
     
+    const updatedTemplate = { 
+      ...selectedTemplate, 
+      ...formData 
+    };
+    
+    // Update in context
+    updateNotificationTemplate(updatedTemplate);
+    
+    // Update local state
     const updatedTemplates = templates.map(template => 
       template.id === selectedTemplate.id 
-        ? { ...template, ...formData }
+        ? updatedTemplate
         : template
     );
     
     setTemplates(updatedTemplates);
-    setSelectedTemplate({ ...selectedTemplate, ...formData });
+    setSelectedTemplate(updatedTemplate);
     setEditMode(false);
     toast.success("Template updated successfully");
   };
@@ -99,9 +82,20 @@ const AdminNotifications = () => {
       name: selectedTemplate.name,
       title: selectedTemplate.title,
       message: selectedTemplate.message,
-      type: selectedTemplate.type
+      type: selectedTemplate.type,
+      variables: selectedTemplate.variables
     });
     setEditMode(false);
+  };
+
+  const handleSaveWhatsappKey = () => {
+    if (whatsappApiKey.trim()) {
+      // In a real app, this would securely store the API key
+      localStorage.setItem('whatsapp_api_key', whatsappApiKey);
+      toast.success("WhatsApp API key saved successfully");
+    } else {
+      toast.error("Please enter a valid API key");
+    }
   };
 
   return (
@@ -190,7 +184,7 @@ const AdminNotifications = () => {
                       />
                       {editMode && (
                         <div className="text-sm text-muted-foreground">
-                          Use placeholders like {"{product_name}"}, {"{expiry_date}"}, {"{credit_amount}"} in your message.
+                          Use placeholders like {"{product_name}"}, {"{expiry_date}"}, {"{credit_amount}"}, {"{phone_number}"} in your message.
                         </div>
                       )}
                     </div>
@@ -264,7 +258,28 @@ const AdminNotifications = () => {
                   </div>
                 </div>
 
-                <Button className="mt-4" onClick={() => toast.success("Settings saved successfully")}>
+                <div className="space-y-2 pt-4 border-t mt-4">
+                  <h4 className="font-medium">WhatsApp Integration</h4>
+                  <p className="text-sm text-muted-foreground mb-4">
+                    Set up your WhatsApp API key for sending notifications to users and admins
+                  </p>
+                  
+                  <div className="space-y-2">
+                    <Label htmlFor="whatsapp-api-key">WhatsApp API Key (StarSender)</Label>
+                    <Input 
+                      id="whatsapp-api-key" 
+                      type="password" 
+                      placeholder="Enter your WhatsApp API key" 
+                      value={whatsappApiKey}
+                      onChange={(e) => setWhatsappApiKey(e.target.value)}
+                    />
+                    <p className="text-xs text-muted-foreground">
+                      This key is stored securely and used to send notifications to phone numbers
+                    </p>
+                  </div>
+                </div>
+
+                <Button className="mt-4" onClick={handleSaveWhatsappKey}>
                   Save Settings
                 </Button>
               </div>

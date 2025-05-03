@@ -9,6 +9,7 @@ export interface User {
   id: string;
   name: string;
   email: string;
+  phoneNumber?: string;
   role: UserRole;
   credits: number;
   joinedAt: Date;
@@ -21,6 +22,8 @@ interface AuthContextType {
   login: (email: string, password: string) => Promise<void>;
   logout: () => void;
   register: (name: string, email: string, password: string) => Promise<void>;
+  updateProfile: (data: Partial<User>) => Promise<void>;
+  updatePassword: (currentPassword: string, newPassword: string) => Promise<void>;
   addCredits: (amount: number) => void;
   deductCredits: (amount: number) => boolean;
 }
@@ -32,6 +35,7 @@ const MOCK_ADMIN: User = {
   id: 'admin-1',
   name: 'Admin User',
   email: 'admin@example.com',
+  phoneNumber: '+1234567890',
   role: 'admin',
   credits: 1000,
   joinedAt: new Date('2023-01-01')
@@ -41,6 +45,7 @@ const MOCK_USER: User = {
   id: 'user-1',
   name: 'Demo User',
   email: 'user@example.com',
+  phoneNumber: '+9876543210',
   role: 'user',
   credits: 50,
   joinedAt: new Date('2023-06-15')
@@ -99,6 +104,53 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
     }
   };
 
+  const updateProfile = async (data: Partial<User>) => {
+    if (!user) return;
+    
+    setIsLoading(true);
+    try {
+      // Simulate API call
+      await new Promise(resolve => setTimeout(resolve, 800));
+      
+      // Email should not be updated
+      const { email, ...updateData } = data;
+      
+      setUser({
+        ...user,
+        ...updateData
+      });
+      
+      toast.success('Profile updated successfully');
+    } finally {
+      setIsLoading(false);
+    }
+  };
+
+  const updatePassword = async (currentPassword: string, newPassword: string) => {
+    if (!user) return;
+    
+    setIsLoading(true);
+    try {
+      // Simulate API call and password validation
+      await new Promise(resolve => setTimeout(resolve, 800));
+      
+      // For demo, just check if current password matches (for admin or user)
+      const validCurrentPassword = 
+        (user.email === 'admin@example.com' && currentPassword === 'admin') ||
+        (user.email === 'user@example.com' && currentPassword === 'user');
+      
+      if (!validCurrentPassword) {
+        toast.error('Current password is incorrect');
+        throw new Error('Current password is incorrect');
+      }
+      
+      // In a real app, we would update the password in the database
+      toast.success('Password updated successfully');
+    } finally {
+      setIsLoading(false);
+    }
+  };
+
   const addCredits = (amount: number) => {
     if (!user) return;
     
@@ -134,6 +186,8 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
       login, 
       logout, 
       register,
+      updateProfile,
+      updatePassword,
       addCredits,
       deductCredits
     }}>
