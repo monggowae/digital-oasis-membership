@@ -9,7 +9,7 @@ import { toast } from "sonner";
 
 const Credits = () => {
   const { creditPackages, purchaseCredits } = useStore();
-  const { user, profile } = useAuth();
+  const { user } = useAuth();
 
   const handlePurchase = (packageId: string) => {
     if (!user) {
@@ -39,10 +39,10 @@ const Credits = () => {
           <p className="text-gray-600">
             Purchase credits to unlock premium digital content. The more credits you buy, the better the value.
           </p>
-          {profile && (
+          {user && (
             <div className="mt-4 inline-block bg-brand-50 border border-brand-200 px-4 py-2 rounded-md">
               <span className="font-medium">Your Balance: </span>
-              <span className="font-bold text-brand-700">{profile.credits} Credits</span>
+              <span className="font-bold text-brand-700">{user.credits} Credits</span>
             </div>
           )}
         </div>

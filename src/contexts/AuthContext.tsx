@@ -1,13 +1,10 @@
-
-import { createContext, useContext, useState, ReactNode, useEffect } from 'react';
+import { createContext, useContext, useState, ReactNode } from 'react';
 import { toast } from 'sonner';
-import { supabase } from "@/integrations/supabase/client";
-import { Session, User } from '@supabase/supabase-js';
 
 // Define user types
 export type UserRole = 'admin' | 'user' | null;
 
-export interface UserProfile {
+export interface User {
   id: string;
   name: string;
   email: string;
@@ -19,14 +16,12 @@ export interface UserProfile {
 
 interface AuthContextType {
   user: User | null;
-  profile: UserProfile | null;
-  session: Session | null;
   isLoading: boolean;
   isAdmin: boolean;
   login: (email: string, password: string) => Promise<void>;
-  logout: () => Promise<void>;
-  register: (name: string, email: string, password: string, phoneNumber?: string) => Promise<void>;
-  updateProfile: (data: Partial<UserProfile>) => Promise<void>;
+  logout: () => void;
+  register: (name: string, email: string, password: string) => Promise<void>;
+  updateProfile: (data: Partial<User>) => Promise<void>;
   updatePassword: (currentPassword: string, newPassword: string) => Promise<void>;
   addCredits: (amount: number) => void;
   deductCredits: (amount: number) => boolean;
@@ -34,169 +29,99 @@ interface AuthContextType {
 
 const AuthContext = createContext<AuthContextType | null>(null);
 
+// Mock users for demo purposes
+const MOCK_ADMIN: User = {
+  id: 'admin-1',
+  name: 'Admin User',
+  email: 'admin@example.com',
+  phoneNumber: '+1234567890',
+  role: 'admin',
+  credits: 1000,
+  joinedAt: new Date('2023-01-01')
+};
+
+const MOCK_USER: User = {
+  id: 'user-1',
+  name: 'Demo User',
+  email: 'user@example.com',
+  phoneNumber: '+9876543210',
+  role: 'user',
+  credits: 50,
+  joinedAt: new Date('2023-06-15')
+};
+
 export const AuthProvider = ({ children }: { children: ReactNode }) => {
   const [user, setUser] = useState<User | null>(null);
-  const [profile, setProfile] = useState<UserProfile | null>(null);
-  const [session, setSession] = useState<Session | null>(null);
-  const [isLoading, setIsLoading] = useState(true);
+  const [isLoading, setIsLoading] = useState(false);
 
-  // Fetch user profile data from Supabase
-  const fetchUserProfile = async (userId: string) => {
-    try {
-      const { data, error } = await supabase
-        .from('profiles')
-        .select('*')
-        .eq('id', userId)
-        .single();
-
-      if (error) throw error;
-
-      if (data) {
-        setProfile({
-          id: data.id,
-          name: data.name,
-          email: data.email,
-          phoneNumber: data.phone_number,
-          role: data.role,
-          credits: 50, // Default credits - this would be replaced with actual credit data in a real app
-          joinedAt: new Date(data.created_at)
-        });
-      }
-    } catch (error) {
-      console.error("Error fetching user profile:", error);
-    }
-  };
-
-  // Set up auth state listener
-  useEffect(() => {
-    // Set up auth state listener first
-    const { data: { subscription } } = supabase.auth.onAuthStateChange(
-      (event, currentSession) => {
-        setSession(currentSession);
-        setUser(currentSession?.user ?? null);
-        
-        // Fetch user profile when user is available
-        if (currentSession?.user) {
-          setTimeout(() => {
-            fetchUserProfile(currentSession.user.id);
-          }, 0);
-        } else {
-          setProfile(null);
-        }
-      }
-    );
-
-    // Then check for existing session
-    supabase.auth.getSession().then(({ data: { session: currentSession } }) => {
-      setSession(currentSession);
-      setUser(currentSession?.user ?? null);
-      
-      if (currentSession?.user) {
-        fetchUserProfile(currentSession.user.id);
-      }
-      setIsLoading(false);
-    });
-
-    return () => {
-      subscription.unsubscribe();
-    };
-  }, []);
+  // All hooks are defined at the beginning of the component
 
   const login = async (email: string, password: string) => {
     setIsLoading(true);
     try {
-      const { error } = await supabase.auth.signInWithPassword({
-        email,
-        password
-      });
+      // Simulate API call
+      await new Promise(resolve => setTimeout(resolve, 800));
       
-      if (error) throw error;
-      
-      toast.success('Logged in successfully');
-    } catch (error: any) {
-      toast.error(error.message || 'Failed to log in');
-      throw error;
+      if (email === 'admin@example.com' && password === 'admin') {
+        setUser(MOCK_ADMIN);
+        toast.success('Logged in as admin');
+      } else if (email === 'user@example.com' && password === 'user') {
+        setUser(MOCK_USER);
+        toast.success('Logged in successfully');
+      } else {
+        toast.error('Invalid credentials');
+        throw new Error('Invalid credentials');
+      }
     } finally {
       setIsLoading(false);
     }
   };
 
-  const logout = async () => {
-    try {
-      const { error } = await supabase.auth.signOut();
-      if (error) throw error;
-      toast.info('Logged out successfully');
-    } catch (error: any) {
-      toast.error(error.message || 'Failed to log out');
-    }
+  const logout = () => {
+    setUser(null);
+    toast.info('Logged out successfully');
   };
 
-  const register = async (name: string, email: string, password: string, phoneNumber?: string) => {
+  const register = async (name: string, email: string, password: string) => {
     setIsLoading(true);
     try {
-      console.log("Registering user with metadata:", { name, phoneNumber });
+      // Simulate API call
+      await new Promise(resolve => setTimeout(resolve, 800));
       
-      // First, try to sign up the user
-      const { error, data } = await supabase.auth.signUp({
+      // For demo, just create a new user object and log them in
+      const newUser: User = {
+        id: `user-${Math.floor(Math.random() * 1000)}`,
+        name,
         email,
-        password,
-        options: {
-          data: {
-            name,
-            phone_number: phoneNumber || null,
-            role: 'user'
-          },
-          emailRedirectTo: window.location.origin
-        }
-      });
+        role: 'user',
+        credits: 20, // Free starting credits
+        joinedAt: new Date()
+      };
       
-      if (error) throw error;
-      
-      // Log the response for debugging
-      console.log("Supabase registration response:", data);
-      
-      // Check if user was created successfully
-      if (!data.user || !data.user.id) {
-        throw new Error('Failed to create user account');
-      }
-      
+      setUser(newUser);
       toast.success('Registration successful');
-      return;
-    } catch (error: any) {
-      console.error("Supabase registration error:", error);
-      toast.error(error.message || 'Failed to register');
-      throw error;
     } finally {
       setIsLoading(false);
     }
   };
 
-  const updateProfile = async (data: Partial<UserProfile>) => {
-    if (!user || !profile) return;
+  const updateProfile = async (data: Partial<User>) => {
+    if (!user) return;
     
     setIsLoading(true);
     try {
-      // Map profile data to Supabase format
-      const updateData: any = {};
-      if (data.name) updateData.name = data.name;
-      if (data.phoneNumber !== undefined) updateData.phone_number = data.phoneNumber;
+      // Simulate API call
+      await new Promise(resolve => setTimeout(resolve, 800));
       
-      const { error } = await supabase
-        .from('profiles')
-        .update(updateData)
-        .eq('id', user.id);
-        
-      if (error) throw error;
+      // Email should not be updated
+      const { email, ...updateData } = data;
       
-      // Update local state
-      setProfile({
-        ...profile,
-        ...data
+      setUser({
+        ...user,
+        ...updateData
       });
       
       toast.success('Profile updated successfully');
-    } catch (error: any) {
-      toast.error(error.message || 'Failed to update profile');
     } finally {
       setIsLoading(false);
     }
@@ -207,67 +132,60 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
     
     setIsLoading(true);
     try {
-      // First verify the current password by attempting to sign in
-      const { error: signInError } = await supabase.auth.signInWithPassword({
-        email: user.email!,
-        password: currentPassword
-      });
+      // Simulate API call and password validation
+      await new Promise(resolve => setTimeout(resolve, 800));
       
-      if (signInError) {
+      // For demo, just check if current password matches (for admin or user)
+      const validCurrentPassword = 
+        (user.email === 'admin@example.com' && currentPassword === 'admin') ||
+        (user.email === 'user@example.com' && currentPassword === 'user');
+      
+      if (!validCurrentPassword) {
         toast.error('Current password is incorrect');
         throw new Error('Current password is incorrect');
       }
       
-      // Update the password
-      const { error } = await supabase.auth.updateUser({
-        password: newPassword
-      });
-      
-      if (error) throw error;
-      
+      // In a real app, we would update the password in the database
       toast.success('Password updated successfully');
-    } catch (error: any) {
-      toast.error(error.message || 'Failed to update password');
-      throw error;
     } finally {
       setIsLoading(false);
     }
   };
 
   const addCredits = (amount: number) => {
-    if (!profile) return;
+    if (!user) return;
     
-    setProfile({
-      ...profile,
-      credits: profile.credits + amount
+    setUser({
+      ...user,
+      credits: user.credits + amount
     });
     
     toast.success(`Added ${amount} credits to your account`);
   };
 
   const deductCredits = (amount: number) => {
-    if (!profile) return false;
+    if (!user) return false;
     
-    if (profile.credits < amount) {
+    if (user.credits < amount) {
       toast.error('Insufficient credits');
       return false;
     }
     
-    setProfile({
-      ...profile,
-      credits: profile.credits - amount
+    setUser({
+      ...user,
+      credits: user.credits - amount
     });
     
     return true;
   };
 
+  // There are no early returns in the component
+
   return (
     <AuthContext.Provider value={{ 
       user, 
-      profile,
-      session,
       isLoading, 
-      isAdmin: profile?.role === 'admin',
+      isAdmin: user?.role === 'admin',
       login, 
       logout, 
       register,

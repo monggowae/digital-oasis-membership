@@ -1,3 +1,4 @@
+
 import { useState } from "react";
 import { MainLayout } from "@/components/layout/MainLayout";
 import { Button } from "@/components/ui/button";
@@ -17,11 +18,12 @@ import { zodResolver } from "@hookform/resolvers/zod";
 import { toast } from "sonner";
 
 const Account = () => {
-  const { user, profile, updateProfile, updatePassword } = useAuth();
+  const { user, updateProfile, updatePassword } = useAuth();
   const { userCredits, getUserTotalCredits, getCreditUsageHistory } = useStore();
   const [isEditingProfile, setIsEditingProfile] = useState(false);
   const [isChangingPassword, setIsChangingPassword] = useState(false);
 
+  // Move the conditional return after all hook declarations
   // Create form schemas
   const profileSchema = z.object({
     name: z.string().min(2, "Name must be at least 2 characters"),
@@ -41,8 +43,8 @@ const Account = () => {
   const profileForm = useForm<z.infer<typeof profileSchema>>({
     resolver: zodResolver(profileSchema),
     defaultValues: {
-      name: profile?.name || "",
-      phoneNumber: profile?.phoneNumber || "",
+      name: user?.name || "",
+      phoneNumber: user?.phoneNumber || "",
     },
   });
 
@@ -77,7 +79,7 @@ const Account = () => {
   };
 
   // Now check if user exists and redirect if not
-  if (!user || !profile) {
+  if (!user) {
     return <Navigate to="/login" />;
   }
 
@@ -125,31 +127,31 @@ const Account = () => {
                       <h3 className="text-sm font-medium text-muted-foreground mb-1">
                         Full Name
                       </h3>
-                      <p>{profile.name}</p>
+                      <p>{user.name}</p>
                     </div>
                     <div>
                       <h3 className="text-sm font-medium text-muted-foreground mb-1">
                         Email Address
                       </h3>
-                      <p>{profile.email}</p>
+                      <p>{user.email}</p>
                     </div>
                     <div>
                       <h3 className="text-sm font-medium text-muted-foreground mb-1">
                         Phone Number
                       </h3>
-                      <p>{profile.phoneNumber || "Not provided"}</p>
+                      <p>{user.phoneNumber || "Not provided"}</p>
                     </div>
                     <div>
                       <h3 className="text-sm font-medium text-muted-foreground mb-1">
                         Account Type
                       </h3>
-                      <p className="capitalize">{profile.role}</p>
+                      <p className="capitalize">{user.role}</p>
                     </div>
                     <div>
                       <h3 className="text-sm font-medium text-muted-foreground mb-1">
                         Member Since
                       </h3>
-                      <p>{format(profile.joinedAt, "MMMM d, yyyy")}</p>
+                      <p>{format(user.joinedAt, "MMMM d, yyyy")}</p>
                     </div>
                   </div>
                 ) : (
@@ -169,7 +171,7 @@ const Account = () => {
                       <Label htmlFor="email">Email Address</Label>
                       <Input
                         id="email"
-                        value={profile.email}
+                        value={user.email}
                         disabled
                         className="bg-gray-100"
                       />

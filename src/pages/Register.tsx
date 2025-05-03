@@ -1,12 +1,11 @@
 
 import { useState } from 'react';
 import { useNavigate, Link } from 'react-router-dom';
-import { Package, Eye, EyeOff } from 'lucide-react';
+import { Package } from 'lucide-react';
 import { useForm } from 'react-hook-form';
 import { z } from 'zod';
 import { zodResolver } from '@hookform/resolvers/zod';
 import { useAuth } from '@/contexts/AuthContext';
-import { toast } from 'sonner';
 
 // Components
 import { Button } from '@/components/ui/button';
@@ -32,24 +31,21 @@ import { Input } from '@/components/ui/input';
 const registerSchema = z.object({
   name: z.string().min(2, { message: 'Name must be at least 2 characters long' }),
   email: z.string().email({ message: 'Please enter a valid email address' }),
-  phoneNumber: z.string().optional(),
   password: z.string().min(6, { message: 'Password must be at least 6 characters long' }),
 });
 
 type RegisterFormValues = z.infer<typeof registerSchema>;
 
 const Register = () => {
-  const { register: registerUser, isLoading } = useAuth();
+  const { register, isLoading } = useAuth();
   const navigate = useNavigate();
   const [registerError, setRegisterError] = useState<string | null>(null);
-  const [showPassword, setShowPassword] = useState(false);
 
   const form = useForm<RegisterFormValues>({
     resolver: zodResolver(registerSchema),
     defaultValues: {
       name: '',
       email: '',
-      phoneNumber: '',
       password: '',
     },
   });
@@ -57,18 +53,11 @@ const Register = () => {
   const onSubmit = async (values: RegisterFormValues) => {
     setRegisterError(null);
     try {
-      console.log("Submitting registration form:", { ...values, password: "********" });
-      await registerUser(values.name, values.email, values.password, values.phoneNumber);
-      toast.success('Registration successful! Redirecting to homepage...');
+      await register(values.name, values.email, values.password);
       navigate('/');
-    } catch (error: any) {
-      console.error("Registration error:", error);
-      setRegisterError(error?.message || 'Registration failed. Please try again.');
+    } catch (error) {
+      setRegisterError('Registration failed. Please try again.');
     }
-  };
-
-  const togglePasswordVisibility = () => {
-    setShowPassword(!showPassword);
   };
 
   return (
@@ -113,38 +102,12 @@ const Register = () => {
               />
               <FormField
                 control={form.control}
-                name="phoneNumber"
-                render={({ field }) => (
-                  <FormItem>
-                    <FormLabel>Phone Number</FormLabel>
-                    <FormControl>
-                      <Input placeholder="+1234567890" {...field} />
-                    </FormControl>
-                    <FormMessage />
-                  </FormItem>
-                )}
-              />
-              <FormField
-                control={form.control}
                 name="password"
                 render={({ field }) => (
                   <FormItem>
                     <FormLabel>Password</FormLabel>
                     <FormControl>
-                      <div className="relative">
-                        <Input 
-                          type={showPassword ? "text" : "password"}
-                          placeholder="••••••••" 
-                          {...field} 
-                        />
-                        <button 
-                          type="button"
-                          onClick={togglePasswordVisibility}
-                          className="absolute right-3 top-1/2 -translate-y-1/2 text-gray-500 hover:text-gray-700"
-                        >
-                          {showPassword ? <EyeOff size={18} /> : <Eye size={18} />}
-                        </button>
-                      </div>
+                      <Input type="password" placeholder="••••••••" {...field} />
                     </FormControl>
                     <FormMessage />
                   </FormItem>

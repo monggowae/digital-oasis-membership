@@ -133,20 +133,20 @@ const DEFAULT_TEMPLATES: NotificationTemplate[] = [
 ];
 
 export const NotificationProvider = ({ children }: { children: ReactNode }) => {
-  const { user, profile } = useAuth();
+  const { user } = useAuth();
   const [notifications, setNotifications] = useState<Notification[]>([]);
   const [notificationTemplates, setNotificationTemplates] = useState<NotificationTemplate[]>(DEFAULT_TEMPLATES);
 
   // Initialize notifications based on user role
   useEffect(() => {
-    if (profile?.role === 'admin') {
+    if (user?.role === 'admin') {
       setNotifications(MOCK_ADMIN_NOTIFICATIONS);
-    } else if (profile?.role === 'user') {
+    } else if (user?.role === 'user') {
       setNotifications(MOCK_USER_NOTIFICATIONS);
     } else {
       setNotifications([]);
     }
-  }, [profile]);
+  }, [user]);
 
   const unreadCount = notifications.filter(notif => !notif.read).length;
 
@@ -194,9 +194,9 @@ export const NotificationProvider = ({ children }: { children: ReactNode }) => {
     });
 
     // In a real app, we would also send a WhatsApp notification to the user's phone
-    if (profile?.phoneNumber) {
+    if (user?.phoneNumber) {
       sendWhatsAppNotification(
-        profile.phoneNumber,
+        user.phoneNumber,
         'Your purchase request has been approved. Credits have been added to your account.'
       );
     }
@@ -215,9 +215,9 @@ export const NotificationProvider = ({ children }: { children: ReactNode }) => {
     });
 
     // In a real app, we would also send a WhatsApp notification to the user's phone
-    if (profile?.phoneNumber) {
+    if (user?.phoneNumber) {
       sendWhatsAppNotification(
-        profile.phoneNumber,
+        user.phoneNumber,
         'Your purchase request has been rejected.'
       );
     }

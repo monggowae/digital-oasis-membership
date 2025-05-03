@@ -138,7 +138,7 @@ interface StoreContextType extends StoreState {
 const StoreContext = createContext<StoreContextType | null>(null);
 
 export const StoreProvider = ({ children }: { children: ReactNode }) => {
-  const { user, profile } = useAuth();
+  const { user } = useAuth();
   const { addNotification } = useNotifications();
   
   const [state, setState] = useState<StoreState>({
@@ -378,7 +378,7 @@ export const StoreProvider = ({ children }: { children: ReactNode }) => {
     // Notify admin about the purchase
     addNotification({
       title: 'New Credit Purchase Request',
-      message: `User ${profile?.name || 'Unknown'} has requested to purchase ${creditPackage.name}`,
+      message: `User ${user.name} has requested to purchase ${creditPackage.name}`,
       type: 'purchase',
       actionRequired: true,
       purchaseId: newPurchase.id

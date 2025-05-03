@@ -17,7 +17,7 @@ import { NotificationDropdown } from '../notifications/NotificationDropdown';
 import { useStore } from '@/contexts/StoreContext';
 
 export const Header = () => {
-  const { user, profile, logout, isAdmin } = useAuth();
+  const { user, logout, isAdmin } = useAuth();
   const { getUserTotalCredits } = useStore();
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
   
@@ -53,7 +53,7 @@ export const Header = () => {
         </nav>
 
         <div className="flex items-center gap-2">
-          {user && profile ? (
+          {user ? (
             <>
               <div className="mr-4 hidden md:block">
                 <span className="px-2 py-1 bg-brand-100 text-brand-800 rounded-md text-sm font-medium">
@@ -67,16 +67,16 @@ export const Header = () => {
                 <DropdownMenuTrigger asChild>
                   <Button variant="ghost" className="relative h-8 w-8 rounded-full">
                     <Avatar className="h-8 w-8">
-                      <AvatarImage src={`https://avatar.vercel.sh/${profile.name}}`} alt={profile.name} />
-                      <AvatarFallback>{profile.name.charAt(0)}</AvatarFallback>
+                      <AvatarImage src={`https://avatar.vercel.sh/${user.name}}`} alt={user.name} />
+                      <AvatarFallback>{user.name.charAt(0)}</AvatarFallback>
                     </Avatar>
                   </Button>
                 </DropdownMenuTrigger>
                 <DropdownMenuContent className="w-56" align="end" forceMount>
                   <DropdownMenuLabel className="font-normal">
                     <div className="flex flex-col space-y-1">
-                      <p className="text-sm font-medium leading-none">{profile.name}</p>
-                      <p className="text-xs leading-none text-muted-foreground">{profile.email}</p>
+                      <p className="text-sm font-medium leading-none">{user.name}</p>
+                      <p className="text-xs leading-none text-muted-foreground">{user.email}</p>
                     </div>
                   </DropdownMenuLabel>
                   <DropdownMenuSeparator />
