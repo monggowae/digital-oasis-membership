@@ -20,6 +20,7 @@ interface NotificationContextType {
   addNotification: (notification: Omit<Notification, 'id' | 'createdAt' | 'read'>) => void;
   markAsRead: (id: string) => void;
   markAllAsRead: () => void;
+  clearAllNotifications: () => void;
   approvePurchase: (purchaseId: string) => void;
   rejectPurchase: (purchaseId: string) => void;
 }
@@ -110,6 +111,10 @@ export const NotificationProvider = ({ children }: { children: ReactNode }) => {
   const markAllAsRead = () => {
     setNotifications(prev => prev.map(notif => ({ ...notif, read: true })));
   };
+  
+  const clearAllNotifications = () => {
+    setNotifications([]);
+  };
 
   const approvePurchase = (purchaseId: string) => {
     setNotifications(prev => 
@@ -144,6 +149,7 @@ export const NotificationProvider = ({ children }: { children: ReactNode }) => {
       addNotification, 
       markAsRead, 
       markAllAsRead,
+      clearAllNotifications,
       approvePurchase,
       rejectPurchase
     }}>

@@ -1,6 +1,6 @@
 
 import { createContext, useContext, useState, ReactNode, useEffect } from 'react';
-import { DigitalProduct, CreditPackage, PurchasedProduct, Purchase, StoreState } from '../models/types';
+import { DigitalProduct, CreditPackage, PurchasedProduct, Purchase, StoreState, UserCredit } from '../models/types';
 import { useAuth } from './AuthContext';
 import { useNotifications } from './NotificationContext';
 import { toast } from 'sonner';
@@ -58,6 +58,7 @@ const MOCK_CREDIT_PACKAGES: CreditPackage[] = [
     description: '100 credits to get you started',
     credits: 100,
     price: 9.99,
+    expiryDays: 30
   },
   {
     id: 'credit-2',
@@ -65,14 +66,16 @@ const MOCK_CREDIT_PACKAGES: CreditPackage[] = [
     description: '500 credits for regular users',
     credits: 500,
     price: 39.99,
-    featured: true
+    featured: true,
+    expiryDays: 60
   },
   {
     id: 'credit-3',
     name: 'Ultimate Pack',
     description: '1200 credits with best value',
     credits: 1200,
-    price: 79.99
+    price: 79.99,
+    expiryDays: 90
   }
 ];
 
@@ -86,6 +89,19 @@ const MOCK_USER_PRODUCTS: PurchasedProduct[] = [
     expiryDate: new Date('2023-06-10'),
     product: MOCK_DIGITAL_PRODUCTS[0],
     status: 'active'
+  }
+];
+
+// Mock user credits
+const MOCK_USER_CREDITS: UserCredit[] = [
+  {
+    id: 'usercredit-1',
+    userId: 'user-1',
+    amount: 300,
+    purchaseDate: new Date('2023-05-05'),
+    expiryDate: new Date('2023-08-05'),
+    status: 'active',
+    packageId: 'credit-2'
   }
 ];
 
@@ -114,12 +130,14 @@ interface StoreContextType extends StoreState {
   approvePurchase: (purchaseId: string) => void;
   rejectPurchase: (purchaseId: string) => void;
   checkProductExpiry: () => void;
+  checkCreditExpiry: () => void;
+  getUserTotalCredits: () => number;
 }
 
 const StoreContext = createContext<StoreContextType | null>(null);
 
 export const StoreProvider = ({ children }: { children: ReactNode }) => {
-  const { user, addCredits, deductCredits } = useAuth();
+  const { user } = useAuth();
   const { addNotification } = useNotifications();
   
   const [state, setState] = useState<StoreState>({
@@ -127,16 +145,27 @@ export const StoreProvider = ({ children }: { children: ReactNode }) => {
     creditPackages: MOCK_CREDIT_PACKAGES,
     purchases: MOCK_PURCHASES,
     userProducts: MOCK_USER_PRODUCTS,
+    userCredits: MOCK_USER_CREDITS,
     loading: false,
     error: null
   });
 
-  // Check for product expiry when user changes
+  // Check for product and credit expiry when user changes
   useEffect(() => {
     if (user) {
       checkProductExpiry();
+      checkCreditExpiry();
     }
   }, [user]);
+
+  const getUserTotalCredits = (): number => {
+    if (!user) return 0;
+    
+    // Sum up all active user credits
+    return state.userCredits
+      .filter(credit => credit.userId === user.id && credit.status === 'active')
+      .reduce((total, credit) => total + credit.amount, 0);
+  };
 
   const purchaseProduct = (productId: string) => {
     if (!user) {
@@ -301,11 +330,80 @@ export const StoreProvider = ({ children }: { children: ReactNode }) => {
     if (purchase.type === 'credit') {
       const creditPackage = state.creditPackages.find(p => p.id === purchase.itemId);
       if (creditPackage) {
-        addCredits(creditPackage.credits);
+        // Calculate expiry date
+        const expiryDate = new Date();
+        expiryDate.setDate(expiryDate.getDate() + creditPackage.expiryDays);
+        
+        // Add credits to user
+        const newUserCredit: UserCredit = {
+          id: `usercredit-${Date.now()}`,
+          userId: purchase.userId,
+          amount: creditPackage.credits,
+          purchaseDate: new Date(),
+          expiryDate: expiryDate,
+          status: 'active',
+          packageId: creditPackage.id
+        };
+        
+        setState(prev => ({
+          ...prev,
+          userCredits: [...prev.userCredits, newUserCredit]
+        }));
+
+        // Notify user about approved purchase
+        addNotification({
+          title: 'Credit Purchase Approved',
+          message: `Your purchase of ${creditPackage.name} has been approved. ${creditPackage.credits} credits have been added to your account.`,
+          type: 'system'
+        });
       }
     } else if (purchase.type === 'product') {
       const product = state.digitalProducts.find(p => p.id === purchase.itemId);
-      if (product && deductCredits(product.price)) {
+      if (product) {
+        // Check if user has enough credits
+        const userCredits = getUserTotalCredits();
+        if (userCredits < product.price) {
+          toast.error('User does not have enough credits');
+          
+          // Revert purchase status
+          setState(prev => ({
+            ...prev,
+            purchases: prev.purchases.map(p => 
+              p.id === purchaseId ? { ...p, status: 'rejected' } : p
+            )
+          }));
+          
+          return;
+        }
+        
+        // Deduct credits from user (from oldest to newest)
+        let remainingCost = product.price;
+        const updatedUserCredits = [...state.userCredits]
+          .filter(uc => uc.userId === purchase.userId && uc.status === 'active')
+          .sort((a, b) => a.purchaseDate.getTime() - b.purchaseDate.getTime())
+          .map(credit => {
+            if (remainingCost <= 0) return credit;
+            
+            if (credit.amount <= remainingCost) {
+              remainingCost -= credit.amount;
+              return { ...credit, amount: 0, status: 'expired' as const };
+            } else {
+              const newAmount = credit.amount - remainingCost;
+              remainingCost = 0;
+              return { ...credit, amount: newAmount };
+            }
+          });
+        
+        // Update user credits
+        setState(prev => ({
+          ...prev,
+          userCredits: prev.userCredits.map(uc => {
+            const updated = updatedUserCredits.find(updated => updated.id === uc.id);
+            return updated || uc;
+          })
+        }));
+        
+        // Create purchased product
         const expiryDate = new Date();
         expiryDate.setDate(expiryDate.getDate() + product.expiryDays);
         
@@ -327,7 +425,7 @@ export const StoreProvider = ({ children }: { children: ReactNode }) => {
         // Notify user about approved purchase
         addNotification({
           title: 'Purchase Approved',
-          message: `Your purchase of ${product.name} has been approved`,
+          message: `Your purchase of ${product.name} has been approved. ${product.price} credits have been deducted from your account.`,
           type: 'system'
         });
       }
@@ -359,28 +457,70 @@ export const StoreProvider = ({ children }: { children: ReactNode }) => {
   };
 
   const checkProductExpiry = () => {
+    if (!user) return;
+    
     const now = new Date();
     let expiredFound = false;
     
     // Check for expired products
-    const updatedUserProducts = state.userProducts.map(up => {
-      if (up.status === 'active' && up.expiryDate < now) {
-        expiredFound = true;
-        return { ...up, status: 'expired' };
-      }
-      return up;
-    });
+    const updatedUserProducts = state.userProducts
+      .filter(up => up.userId === user.id)
+      .map(up => {
+        if (up.status === 'active' && up.expiryDate < now) {
+          expiredFound = true;
+          return { ...up, status: 'expired' as const };
+        }
+        return up;
+      });
     
     if (expiredFound) {
       setState(prev => ({
         ...prev,
-        userProducts: updatedUserProducts
+        userProducts: prev.userProducts.map(up => {
+          const updated = updatedUserProducts.find(u => u.id === up.id);
+          return updated || up;
+        })
       }));
       
       // Notify user about expired products
       addNotification({
         title: 'Products Expired',
         message: 'Some of your products have expired',
+        type: 'expiry'
+      });
+    }
+  };
+
+  const checkCreditExpiry = () => {
+    if (!user) return;
+    
+    const now = new Date();
+    let expiredFound = false;
+    
+    // Check for expired credits
+    const updatedUserCredits = state.userCredits
+      .filter(uc => uc.userId === user.id)
+      .map(uc => {
+        if (uc.status === 'active' && uc.expiryDate < now) {
+          expiredFound = true;
+          return { ...uc, status: 'expired' as const };
+        }
+        return uc;
+      });
+      
+    if (expiredFound) {
+      setState(prev => ({
+        ...prev,
+        userCredits: prev.userCredits.map(uc => {
+          const updated = updatedUserCredits.find(u => u.id === uc.id);
+          return updated || uc;
+        })
+      }));
+      
+      // Notify user about expired credits
+      addNotification({
+        title: 'Credits Expired',
+        message: 'Some of your credits have expired',
         type: 'expiry'
       });
     }
@@ -399,7 +539,9 @@ export const StoreProvider = ({ children }: { children: ReactNode }) => {
       deleteCreditPackage,
       approvePurchase,
       rejectPurchase,
-      checkProductExpiry
+      checkProductExpiry,
+      checkCreditExpiry,
+      getUserTotalCredits
     }}>
       {children}
     </StoreContext.Provider>

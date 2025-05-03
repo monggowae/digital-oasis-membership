@@ -4,16 +4,25 @@ import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { useAuth } from "@/contexts/AuthContext";
-import { CreditCard, Package, User } from "lucide-react";
+import { useStore } from "@/contexts/StoreContext";
+import { CreditCard, Clock, Package, User } from "lucide-react";
 import { format } from "date-fns";
 import { Navigate } from "react-router-dom";
 
 const Account = () => {
   const { user } = useAuth();
+  const { userCredits, getUserTotalCredits } = useStore();
 
   if (!user) {
     return <Navigate to="/login" />;
   }
+
+  // Get user's active credits
+  const activeCredits = userCredits.filter(credit => 
+    credit.userId === user.id && credit.status === 'active'
+  );
+
+  const totalCredits = getUserTotalCredits();
 
   return (
     <MainLayout>
@@ -98,16 +107,34 @@ const Account = () => {
               <CardContent className="space-y-6">
                 <div className="bg-brand-50 border border-brand-100 p-6 rounded-md text-center">
                   <h3 className="text-xl font-medium mb-1">Current Balance</h3>
-                  <p className="text-3xl font-bold text-brand-700">{user.credits} Credits</p>
+                  <p className="text-3xl font-bold text-brand-700">{totalCredits} Credits</p>
                 </div>
 
                 <div className="pt-4">
-                  <h3 className="text-lg font-medium mb-4">Recent Transactions</h3>
+                  <h3 className="text-lg font-medium mb-4">Your Credits</h3>
                   
-                  {/* This would be populated from real data in a full implementation */}
-                  <div className="bg-gray-50 p-4 rounded text-center">
-                    <p className="text-gray-600">Transaction history will appear here</p>
-                  </div>
+                  {activeCredits.length === 0 ? (
+                    <div className="bg-gray-50 p-4 rounded text-center">
+                      <p className="text-gray-600">You don't have any active credits</p>
+                    </div>
+                  ) : (
+                    <div className="space-y-4">
+                      {activeCredits.map(credit => (
+                        <div key={credit.id} className="bg-gray-50 border rounded-md p-4 flex justify-between items-center">
+                          <div>
+                            <p className="font-medium">{credit.amount} Credits</p>
+                            <div className="flex items-center text-xs text-gray-500 mt-1">
+                              <Clock className="h-3 w-3 mr-1" />
+                              <span>Expires on {format(credit.expiryDate, "MMM d, yyyy")}</span>
+                            </div>
+                          </div>
+                          <div className="text-right">
+                            <span className="text-xs bg-green-100 text-green-800 py-1 px-2 rounded-full">Active</span>
+                          </div>
+                        </div>
+                      ))}
+                    </div>
+                  )}
                 </div>
 
                 <div className="pt-4 flex justify-center">

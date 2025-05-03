@@ -11,19 +11,88 @@ import { Navigate, Link } from "react-router-dom";
 
 const Purchases = () => {
   const { user } = useAuth();
-  const { userProducts, purchases } = useStore();
+  const { userProducts, purchases, userCredits, getUserTotalCredits } = useStore();
 
   if (!user) {
     return <Navigate to="/login" />;
   }
 
+  // Calculate total active credits
+  const totalCredits = getUserTotalCredits();
+
   // Filter purchases for current user
   const userPurchases = purchases.filter((purchase) => purchase.userId === user.id);
+  
+  // Get active credits for the user
+  const activeCredits = userCredits.filter(
+    (credit) => credit.userId === user.id && credit.status === 'active'
+  );
 
   return (
     <MainLayout>
       <div className="container mx-auto px-4 py-8">
         <h1 className="text-3xl font-bold mb-8">Your Purchases</h1>
+
+        {/* Credit Summary */}
+        <div className="mb-12">
+          <h2 className="text-2xl font-bold mb-6">Your Credits</h2>
+          <Card className="mb-8">
+            <CardContent className="p-6">
+              <div className="flex flex-col md:flex-row justify-between items-center">
+                <div className="text-center md:text-left mb-4 md:mb-0">
+                  <h3 className="text-lg font-medium text-gray-700">Total Credits Available</h3>
+                  <p className="text-3xl font-bold text-brand-600">{totalCredits}</p>
+                </div>
+                <Button asChild>
+                  <Link to="/credits">Purchase More Credits</Link>
+                </Button>
+              </div>
+            </CardContent>
+          </Card>
+
+          {activeCredits.length > 0 && (
+            <div className="bg-gray-50 border rounded-lg overflow-hidden">
+              <table className="min-w-full divide-y divide-gray-200">
+                <thead className="bg-gray-100">
+                  <tr>
+                    <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                      Credits
+                    </th>
+                    <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                      Purchase Date
+                    </th>
+                    <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                      Expiry Date
+                    </th>
+                    <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                      Status
+                    </th>
+                  </tr>
+                </thead>
+                <tbody className="bg-white divide-y divide-gray-200">
+                  {activeCredits.map((credit) => (
+                    <tr key={credit.id}>
+                      <td className="px-6 py-4 whitespace-nowrap text-sm font-medium">
+                        {credit.amount}
+                      </td>
+                      <td className="px-6 py-4 whitespace-nowrap text-sm">
+                        {format(credit.purchaseDate, "MMM d, yyyy")}
+                      </td>
+                      <td className="px-6 py-4 whitespace-nowrap text-sm">
+                        {format(credit.expiryDate, "MMM d, yyyy")}
+                      </td>
+                      <td className="px-6 py-4 whitespace-nowrap">
+                        <Badge variant="outline" className="text-green-600 border-green-200 bg-green-50">
+                          Active
+                        </Badge>
+                      </td>
+                    </tr>
+                  ))}
+                </tbody>
+              </table>
+            </div>
+          )}
+        </div>
 
         {/* Active Products */}
         <div className="mb-12">

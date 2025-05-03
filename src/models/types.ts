@@ -17,6 +17,7 @@ export interface CreditPackage {
   description: string;
   credits: number;
   price: number;
+  expiryDays: number; // Adding expiry days for credit packages
   featured?: boolean;
 }
 
@@ -28,6 +29,16 @@ export interface PurchasedProduct {
   expiryDate: Date;
   product: DigitalProduct;
   status: 'active' | 'expired' | 'pending';
+}
+
+export interface UserCredit {
+  id: string;
+  userId: string;
+  amount: number;
+  purchaseDate: Date;
+  expiryDate: Date;
+  status: 'active' | 'expired';
+  packageId: string;
 }
 
 export interface Purchase {
@@ -45,6 +56,7 @@ export interface StoreState {
   creditPackages: CreditPackage[];
   purchases: Purchase[];
   userProducts: PurchasedProduct[];
+  userCredits: UserCredit[];
   loading: boolean;
   error: string | null;
 }

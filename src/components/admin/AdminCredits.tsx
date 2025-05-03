@@ -21,7 +21,7 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { useStore } from "@/contexts/StoreContext";
 import { CreditPackage } from "@/models/types";
-import { CheckCircle, CreditCard, Edit, Trash } from "lucide-react";
+import { CheckCircle, CreditCard, Edit, Trash, Clock } from "lucide-react";
 
 const AdminCredits = () => {
   const { creditPackages, addCreditPackage, updateCreditPackage, deleteCreditPackage } = useStore();
@@ -34,6 +34,7 @@ const AdminCredits = () => {
     description: "",
     credits: 0,
     price: 0,
+    expiryDays: 30,
     featured: false,
   });
 
@@ -43,6 +44,7 @@ const AdminCredits = () => {
       description: formData.description,
       credits: formData.credits,
       price: formData.price,
+      expiryDays: formData.expiryDays,
       featured: formData.featured,
     });
     setIsAddDialogOpen(false);
@@ -57,6 +59,7 @@ const AdminCredits = () => {
       description: formData.description,
       credits: formData.credits,
       price: formData.price,
+      expiryDays: formData.expiryDays,
       featured: formData.featured,
     });
     setIsEditDialogOpen(false);
@@ -70,6 +73,7 @@ const AdminCredits = () => {
       description: pkg.description,
       credits: pkg.credits,
       price: pkg.price,
+      expiryDays: pkg.expiryDays,
       featured: !!pkg.featured,
     });
     setIsEditDialogOpen(true);
@@ -93,6 +97,7 @@ const AdminCredits = () => {
       description: "",
       credits: 0,
       price: 0,
+      expiryDays: 30,
       featured: false,
     });
   };
@@ -164,6 +169,18 @@ const AdminCredits = () => {
                 />
               </div>
               <div className="grid grid-cols-4 items-center gap-4">
+                <Label htmlFor="expiryDays" className="text-right">
+                  Expiry Days
+                </Label>
+                <Input
+                  id="expiryDays"
+                  type="number"
+                  value={formData.expiryDays}
+                  onChange={(e) => setFormData({ ...formData, expiryDays: Number(e.target.value) })}
+                  className="col-span-3"
+                />
+              </div>
+              <div className="grid grid-cols-4 items-center gap-4">
                 <Label htmlFor="featured" className="text-right">
                   Featured
                 </Label>
@@ -208,6 +225,11 @@ const AdminCredits = () => {
                   <div className="text-xl font-bold">${pkg.price.toFixed(2)}</div>
                   <div className="text-sm text-gray-500">USD</div>
                 </div>
+              </div>
+
+              <div className="flex items-center text-sm text-gray-500 mb-4">
+                <Clock className="h-4 w-4 mr-1" />
+                <span>Expires after {pkg.expiryDays} days</span>
               </div>
 
               <div className="flex justify-between mt-4">
@@ -294,6 +316,18 @@ const AdminCredits = () => {
                 step="0.01"
                 value={formData.price}
                 onChange={(e) => setFormData({ ...formData, price: Number(e.target.value) })}
+                className="col-span-3"
+              />
+            </div>
+            <div className="grid grid-cols-4 items-center gap-4">
+              <Label htmlFor="edit-expiryDays" className="text-right">
+                Expiry Days
+              </Label>
+              <Input
+                id="edit-expiryDays"
+                type="number"
+                value={formData.expiryDays}
+                onChange={(e) => setFormData({ ...formData, expiryDays: Number(e.target.value) })}
                 className="col-span-3"
               />
             </div>

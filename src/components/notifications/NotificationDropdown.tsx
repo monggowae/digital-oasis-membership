@@ -1,6 +1,6 @@
 
 import { useState } from 'react';
-import { Bell } from 'lucide-react';
+import { Bell, Trash } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
 import {
@@ -13,26 +13,14 @@ import {
 } from '@/components/ui/dropdown-menu';
 import { ScrollArea } from '@/components/ui/scroll-area';
 import { useNotifications } from '@/contexts/NotificationContext';
-import { useAuth } from '@/contexts/AuthContext';
-import { useStore } from '@/contexts/StoreContext';
 import { formatDistanceToNow } from 'date-fns';
 
 export const NotificationDropdown = () => {
   const { notifications, unreadCount, markAsRead, markAllAsRead } = useNotifications();
-  const { isAdmin } = useAuth();
-  const { approvePurchase, rejectPurchase } = useStore();
   const [open, setOpen] = useState(false);
 
   const handleNotificationClick = (id: string) => {
     markAsRead(id);
-  };
-
-  const handleApprove = (purchaseId: string) => {
-    approvePurchase(purchaseId);
-  };
-
-  const handleReject = (purchaseId: string) => {
-    rejectPurchase(purchaseId);
   };
 
   return (
@@ -53,11 +41,19 @@ export const NotificationDropdown = () => {
       <DropdownMenuContent className="w-80" align="end">
         <DropdownMenuLabel className="flex items-center justify-between">
           <span>Notifications</span>
-          {unreadCount > 0 && (
-            <Button variant="ghost" size="sm" onClick={markAllAsRead} className="text-xs h-7">
-              Mark all as read
-            </Button>
-          )}
+          <div className="flex gap-2">
+            {unreadCount > 0 && (
+              <Button variant="ghost" size="sm" onClick={markAllAsRead} className="text-xs h-7">
+                Mark all as read
+              </Button>
+            )}
+            {notifications.length > 0 && (
+              <Button variant="ghost" size="sm" onClick={markAllAsRead} className="text-xs h-7 text-red-500 hover:text-red-600">
+                <Trash className="h-3 w-3 mr-1" />
+                Clear all
+              </Button>
+            )}
+          </div>
         </DropdownMenuLabel>
         <DropdownMenuSeparator />
         <ScrollArea className="h-[300px]">
@@ -80,35 +76,6 @@ export const NotificationDropdown = () => {
                     </span>
                   </div>
                   <p className="text-xs text-muted-foreground">{notification.message}</p>
-                  
-                  {isAdmin && notification.actionRequired && notification.purchaseId && (
-                    <div className="flex gap-2 mt-2">
-                      <Button 
-                        size="sm" 
-                        variant="default" 
-                        className="h-7 px-2 text-xs"
-                        onClick={(e) => {
-                          e.stopPropagation();
-                          handleApprove(notification.purchaseId!);
-                          setOpen(false);
-                        }}
-                      >
-                        Approve
-                      </Button>
-                      <Button 
-                        size="sm" 
-                        variant="destructive" 
-                        className="h-7 px-2 text-xs"
-                        onClick={(e) => {
-                          e.stopPropagation();
-                          handleReject(notification.purchaseId!);
-                          setOpen(false);
-                        }}
-                      >
-                        Reject
-                      </Button>
-                    </div>
-                  )}
                 </div>
               </DropdownMenuItem>
             ))
