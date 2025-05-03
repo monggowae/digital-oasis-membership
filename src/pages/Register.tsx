@@ -6,6 +6,7 @@ import { useForm } from 'react-hook-form';
 import { z } from 'zod';
 import { zodResolver } from '@hookform/resolvers/zod';
 import { useAuth } from '@/contexts/AuthContext';
+import { toast } from 'sonner';
 
 // Components
 import { Button } from '@/components/ui/button';
@@ -57,9 +58,11 @@ const Register = () => {
     setRegisterError(null);
     try {
       await registerUser(values.name, values.email, values.password, values.phoneNumber);
+      toast.success('Registration successful! Redirecting to homepage...');
       navigate('/');
-    } catch (error) {
-      setRegisterError('Registration failed. Please try again.');
+    } catch (error: any) {
+      console.error("Registration error:", error);
+      setRegisterError(error?.message || 'Registration failed. Please try again.');
     }
   };
 

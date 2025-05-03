@@ -134,7 +134,8 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
   const register = async (name: string, email: string, password: string, phoneNumber?: string) => {
     setIsLoading(true);
     try {
-      const { error } = await supabase.auth.signUp({
+      console.log("Registering user with metadata:", { name, phoneNumber });
+      const { error, data } = await supabase.auth.signUp({
         email,
         password,
         options: {
@@ -147,8 +148,12 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
       
       if (error) throw error;
       
+      // Log the response for debugging
+      console.log("Supabase registration response:", data);
+      
       toast.success('Registration successful');
     } catch (error: any) {
+      console.error("Supabase registration error:", error);
       toast.error(error.message || 'Failed to register');
       throw error;
     } finally {
