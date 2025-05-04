@@ -1,4 +1,3 @@
-
 import { useState } from "react";
 import { MainLayout } from "@/components/layout/MainLayout";
 import { Button } from "@/components/ui/button";
@@ -23,7 +22,6 @@ const Account = () => {
   const [isEditingProfile, setIsEditingProfile] = useState(false);
   const [isChangingPassword, setIsChangingPassword] = useState(false);
 
-  // Move the conditional return after all hook declarations
   // Create form schemas
   const profileSchema = z.object({
     name: z.string().min(2, "Name must be at least 2 characters"),
@@ -48,19 +46,13 @@ const Account = () => {
     },
   });
 
-  const passwordForm = useForm<z.infer<typeof passwordSchema>>({
-    resolver: zodResolver(passwordSchema),
-    defaultValues: {
-      currentPassword: "",
-      newPassword: "",
-      confirmPassword: "",
-    },
-  });
-
   // Form submit handlers
   const onProfileSubmit = async (data: z.infer<typeof profileSchema>) => {
     try {
-      await updateProfile(data);
+      await updateProfile({
+        name: data.name,
+        phoneNumber: data.phoneNumber
+      });
       setIsEditingProfile(false);
     } catch (error) {
       console.error("Failed to update profile:", error);

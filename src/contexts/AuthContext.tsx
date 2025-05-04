@@ -2,12 +2,12 @@
 import { createContext, useContext, useState, ReactNode, useEffect } from 'react';
 import { toast } from 'sonner';
 import { supabase } from '@/integrations/supabase/client';
-import { AuthError, User } from '@supabase/supabase-js';
+import { AuthError, User as SupabaseUser } from '@supabase/supabase-js';
 
 // Define user types
 export type UserRole = 'admin' | 'user' | null;
 
-export interface User {
+export interface AppUser {
   id: string;
   name: string;
   email: string;
@@ -18,13 +18,13 @@ export interface User {
 }
 
 interface AuthContextType {
-  user: User | null;
+  user: AppUser | null;
   isLoading: boolean;
   isAdmin: boolean;
   login: (email: string, password: string) => Promise<void>;
   logout: () => void;
   register: (name: string, email: string, password: string, phoneNumber?: string) => Promise<void>;
-  updateProfile: (data: Partial<User>) => Promise<void>;
+  updateProfile: (data: Partial<AppUser>) => Promise<void>;
   updatePassword: (currentPassword: string, newPassword: string) => Promise<void>;
   addCredits: (amount: number) => void;
   deductCredits: (amount: number) => boolean;
@@ -33,7 +33,7 @@ interface AuthContextType {
 const AuthContext = createContext<AuthContextType | null>(null);
 
 // Mock users for demo purposes
-const MOCK_ADMIN: User = {
+const MOCK_ADMIN: AppUser = {
   id: 'admin-1',
   name: 'Admin User',
   email: 'admin@example.com',
@@ -43,7 +43,7 @@ const MOCK_ADMIN: User = {
   joinedAt: new Date('2023-01-01')
 };
 
-const MOCK_USER: User = {
+const MOCK_USER: AppUser = {
   id: 'user-1',
   name: 'Demo User',
   email: 'user@example.com',
@@ -54,9 +54,9 @@ const MOCK_USER: User = {
 };
 
 export const AuthProvider = ({ children }: { children: ReactNode }) => {
-  const [user, setUser] = useState<User | null>(null);
+  const [user, setUser] = useState<AppUser | null>(null);
   const [isLoading, setIsLoading] = useState(false);
-  const [authUser, setAuthUser] = useState<User | null>(null);
+  const [authUser, setAuthUser] = useState<SupabaseUser | null>(null);
 
   // Initialize auth state
   useEffect(() => {
@@ -203,7 +203,7 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
     }
   };
 
-  const updateProfile = async (data: Partial<User>) => {
+  const updateProfile = async (data: Partial<AppUser>) => {
     if (!user) return;
     
     setIsLoading(true);
