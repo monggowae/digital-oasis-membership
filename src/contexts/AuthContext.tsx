@@ -1,5 +1,7 @@
+
 import { createContext, useContext, useState, ReactNode } from 'react';
 import { toast } from 'sonner';
+import { supabase } from '@/integrations/supabase/client';
 
 // Define user types
 export type UserRole = 'admin' | 'user' | null;
@@ -20,7 +22,7 @@ interface AuthContextType {
   isAdmin: boolean;
   login: (email: string, password: string) => Promise<void>;
   logout: () => void;
-  register: (name: string, email: string, password: string) => Promise<void>;
+  register: (name: string, email: string, password: string, phoneNumber?: string) => Promise<void>;
   updateProfile: (data: Partial<User>) => Promise<void>;
   updatePassword: (currentPassword: string, newPassword: string) => Promise<void>;
   addCredits: (amount: number) => void;
@@ -82,7 +84,7 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
     toast.info('Logged out successfully');
   };
 
-  const register = async (name: string, email: string, password: string) => {
+  const register = async (name: string, email: string, password: string, phoneNumber?: string) => {
     setIsLoading(true);
     try {
       // Simulate API call
@@ -93,6 +95,7 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
         id: `user-${Math.floor(Math.random() * 1000)}`,
         name,
         email,
+        phoneNumber,
         role: 'user',
         credits: 20, // Free starting credits
         joinedAt: new Date()
