@@ -38,7 +38,7 @@ const registerSchema = z.object({
 type RegisterFormValues = z.infer<typeof registerSchema>;
 
 const Register = () => {
-  const { register, isLoading } = useAuth();
+  const { register } = useAuth();
   const navigate = useNavigate();
   const [registerError, setRegisterError] = useState<string | null>(null);
   const [showPassword, setShowPassword] = useState(false);
@@ -57,8 +57,10 @@ const Register = () => {
   const onSubmit = async (values: RegisterFormValues) => {
     setRegisterError(null);
     setIsSubmitting(true);
+    
     try {
       await register(values.name, values.email, values.password, values.phoneNumber);
+      // Only navigate if registration was successful
       navigate('/');
     } catch (error) {
       if (error instanceof Error) {

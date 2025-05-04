@@ -36,7 +36,7 @@ const loginSchema = z.object({
 type LoginFormValues = z.infer<typeof loginSchema>;
 
 const Login = () => {
-  const { login, isLoading } = useAuth();
+  const { login } = useAuth();
   const navigate = useNavigate();
   const [loginError, setLoginError] = useState<string | null>(null);
   const [showPassword, setShowPassword] = useState(false);
@@ -53,8 +53,10 @@ const Login = () => {
   const onSubmit = async (values: LoginFormValues) => {
     setLoginError(null);
     setIsSubmitting(true);
+    
     try {
       await login(values.email, values.password);
+      // Only navigate if the login was successful
       navigate('/');
     } catch (error) {
       if (error instanceof Error) {

@@ -1,3 +1,4 @@
+
 import { createContext, useContext, useState, ReactNode, useEffect } from 'react';
 import { toast } from 'sonner';
 import { supabase } from '@/integrations/supabase/client';
@@ -124,29 +125,37 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
   const login = async (email: string, password: string) => {
     setIsLoading(true);
     try {
+      console.log("Login attempt with:", email);
+      
       // Special case for demo accounts
       if (email === 'admin@example.com' && password === 'admin') {
         setUser(MOCK_ADMIN);
+        console.log("Mock admin login successful");
         toast.success('Logged in as admin');
         return;
       } else if (email === 'user@example.com' && password === 'user') {
         setUser(MOCK_USER);
+        console.log("Mock user login successful");
         toast.success('Logged in successfully');
         return;
       }
 
       // Real login with Supabase
+      console.log("Attempting Supabase login");
       const { data, error } = await supabase.auth.signInWithPassword({
         email,
         password
       });
 
       if (error) {
+        console.error("Supabase login error:", error);
         throw error;
       }
 
+      console.log("Supabase login successful:", data);
       toast.success('Logged in successfully');
     } catch (error) {
+      console.error("Login error:", error);
       toast.error(error instanceof AuthError ? error.message : 'Invalid credentials');
       throw error;
     } finally {
@@ -171,6 +180,8 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
   const register = async (name: string, email: string, password: string, phoneNumber?: string) => {
     setIsLoading(true);
     try {
+      console.log("Registration attempt:", { name, email, phoneNumber });
+      
       // Register with Supabase
       const { data, error } = await supabase.auth.signUp({
         email,
@@ -184,12 +195,22 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
       });
 
       if (error) {
+        console.error("Registration error:", error);
         throw error;
       }
 
+      console.log("Registration response:", data);
+      
       if (data.user) {
         // The profile will be created automatically by the database trigger
         toast.success('Registration successful');
+        
+        // For demo accounts, set the user immediately
+        if (email === 'admin@example.com') {
+          setUser(MOCK_ADMIN);
+        } else if (email === 'user@example.com') {
+          setUser(MOCK_USER);
+        }
       } else {
         toast.info('Please check your email to confirm your registration');
       }
