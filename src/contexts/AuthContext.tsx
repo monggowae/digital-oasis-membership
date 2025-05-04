@@ -1,4 +1,3 @@
-
 import { createContext, useContext, useState, ReactNode, useEffect } from 'react';
 import { toast } from 'sonner';
 import { supabase } from '@/integrations/supabase/client';
@@ -85,7 +84,7 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
                 setUser({
                   id: profileData.id,
                   name: profileData.name || session.user.user_metadata.name || '',
-                  email: session.user.email || '',
+                  email: profileData.email || session.user.email || '',
                   phoneNumber: profileData.phone_number || session.user.user_metadata.phone_number || '',
                   role: (profileData.role as UserRole) || 'user',
                   credits: profileData.credits || 0,

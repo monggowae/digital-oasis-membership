@@ -42,6 +42,7 @@ const Register = () => {
   const navigate = useNavigate();
   const [registerError, setRegisterError] = useState<string | null>(null);
   const [showPassword, setShowPassword] = useState(false);
+  const [isSubmitting, setIsSubmitting] = useState(false);
 
   const form = useForm<RegisterFormValues>({
     resolver: zodResolver(registerSchema),
@@ -55,6 +56,7 @@ const Register = () => {
 
   const onSubmit = async (values: RegisterFormValues) => {
     setRegisterError(null);
+    setIsSubmitting(true);
     try {
       await register(values.name, values.email, values.password, values.phoneNumber);
       navigate('/');
@@ -64,6 +66,8 @@ const Register = () => {
       } else {
         setRegisterError('Registration failed. Please try again.');
       }
+    } finally {
+      setIsSubmitting(false);
     }
   };
 
@@ -154,8 +158,8 @@ const Register = () => {
               {registerError && (
                 <div className="text-sm text-red-500">{registerError}</div>
               )}
-              <Button type="submit" className="w-full" disabled={isLoading}>
-                {isLoading ? 'Creating account...' : 'Create account'}
+              <Button type="submit" className="w-full" disabled={isSubmitting}>
+                {isSubmitting ? 'Creating account...' : 'Create account'}
               </Button>
             </form>
           </Form>

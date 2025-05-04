@@ -40,6 +40,7 @@ const Login = () => {
   const navigate = useNavigate();
   const [loginError, setLoginError] = useState<string | null>(null);
   const [showPassword, setShowPassword] = useState(false);
+  const [isSubmitting, setIsSubmitting] = useState(false);
 
   const form = useForm<LoginFormValues>({
     resolver: zodResolver(loginSchema),
@@ -51,6 +52,7 @@ const Login = () => {
 
   const onSubmit = async (values: LoginFormValues) => {
     setLoginError(null);
+    setIsSubmitting(true);
     try {
       await login(values.email, values.password);
       navigate('/');
@@ -60,6 +62,8 @@ const Login = () => {
       } else {
         setLoginError('Invalid email or password. Try admin@example.com / admin or user@example.com / user');
       }
+    } finally {
+      setIsSubmitting(false);
     }
   };
 
@@ -128,8 +132,8 @@ const Login = () => {
               {loginError && (
                 <div className="text-sm text-red-500">{loginError}</div>
               )}
-              <Button type="submit" className="w-full" disabled={isLoading}>
-                {isLoading ? 'Logging in...' : 'Log in'}
+              <Button type="submit" className="w-full" disabled={isSubmitting}>
+                {isSubmitting ? 'Logging in...' : 'Log in'}
               </Button>
             </form>
           </Form>
