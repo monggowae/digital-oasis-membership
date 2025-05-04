@@ -55,7 +55,11 @@ const Login = () => {
       await login(values.email, values.password);
       navigate('/');
     } catch (error) {
-      setLoginError('Invalid email or password. Try admin@example.com / admin or user@example.com / user');
+      if (error instanceof Error) {
+        setLoginError(error.message);
+      } else {
+        setLoginError('Invalid email or password. Try admin@example.com / admin or user@example.com / user');
+      }
     }
   };
 

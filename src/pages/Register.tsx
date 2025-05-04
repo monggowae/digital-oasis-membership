@@ -59,7 +59,11 @@ const Register = () => {
       await register(values.name, values.email, values.password, values.phoneNumber);
       navigate('/');
     } catch (error) {
-      setRegisterError('Registration failed. Please try again.');
+      if (error instanceof Error) {
+        setRegisterError(error.message);
+      } else {
+        setRegisterError('Registration failed. Please try again.');
+      }
     }
   };
 
@@ -101,7 +105,7 @@ const Register = () => {
                   <FormItem>
                     <FormLabel>Email</FormLabel>
                     <FormControl>
-                      <Input placeholder="email@example.com" {...field} />
+                      <Input placeholder="email@example.com" {...field} autoComplete="email" />
                     </FormControl>
                     <FormMessage />
                   </FormItem>
@@ -114,7 +118,7 @@ const Register = () => {
                   <FormItem>
                     <FormLabel>Phone Number</FormLabel>
                     <FormControl>
-                      <Input placeholder="+1234567890" {...field} />
+                      <Input placeholder="+1234567890" {...field} autoComplete="tel" />
                     </FormControl>
                     <FormMessage />
                   </FormItem>
@@ -132,6 +136,7 @@ const Register = () => {
                           type={showPassword ? "text" : "password"} 
                           placeholder="••••••••" 
                           {...field} 
+                          autoComplete="new-password"
                         />
                         <button 
                           type="button" 
